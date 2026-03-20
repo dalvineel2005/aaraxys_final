@@ -7,11 +7,19 @@ const Markets = () => {
   const { marketData } = useMarketData();
   const { openOrderModal } = useOrder();
   const [search, setSearch] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('All');
 
-  const filteredData = marketData.filter(stock => 
-    stock.symbol.toLowerCase().includes(search.toLowerCase()) || 
-    stock.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filters = ['All', 'Tech', 'Nifty 50', 'Holdings', 'WL 1', 'WL 2'];
+
+  const filteredData = marketData.filter(stock => {
+    const matchesSearch = stock.symbol.toLowerCase().includes(search.toLowerCase()) || 
+                          stock.name.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesFilter = activeFilter === 'All' || (stock.tags && stock.tags.includes(activeFilter));
+    
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="p-6 h-full flex flex-col animate-in fade-in duration-500 max-w-7xl mx-auto w-full border-r border-l border-border/50">
@@ -23,7 +31,7 @@ const Markets = () => {
           <p className="text-text-main/60 mt-1">Explore all tradable instruments.</p>
         </div>
         
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-3 w-full sm:w-auto relative">
            <div className="relative group w-full sm:w-64">
              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-main/50 group-focus-within:text-primary transition-colors">
                <Search size={16} />
@@ -37,10 +45,38 @@ const Markets = () => {
              />
            </div>
            
-           <button className="p-2 border border-border rounded-lg text-text-main/70 hover:bg-border/50 transition-colors bg-surface flex items-center gap-2 text-sm">
+           <button 
+             onClick={() => setShowFilters(!showFilters)}
+             className={`p-2 border border-border rounded-lg text-text-main/70 hover:bg-border/50 transition-colors bg-surface flex items-center gap-2 text-sm ${showFilters ? 'bg-primary/10 border-primary text-primary' : ''}`}
+           >
              <Filter size={16} />
-             <span className="hidden sm:block">Filter</span>
+             <span className="hidden sm:block">Filter{activeFilter !== 'All' ? `: ${activeFilter}` : ''}</span>
            </button>
+
+           {/* Filter Dropdown */}
+           {showFilters && (
+             <div className="absolute top-full right-0 mt-2 w-48 bg-surface border border-border rounded-lg shadow-xl z-50 animate-in zoom-in-95 duration-200">
+               <div className="p-2">
+                 <p className="text-[10px] font-semibold text-text-main/40 px-2 py-1 uppercase tracking-wider">Filter by Category</p>
+                 {filters.map((f) => (
+                   <button
+                     key={f}
+                     onClick={() => {
+                       setActiveFilter(f);
+                       setShowFilters(false);
+                     }}
+                     className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                       activeFilter === f 
+                         ? 'bg-primary text-white font-medium' 
+                         : 'text-text-main/70 hover:bg-border/50'
+                     }`}
+                   >
+                     {f}
+                   </button>
+                 ))}
+               </div>
+             </div>
+           )}
         </div>
       </div>
 

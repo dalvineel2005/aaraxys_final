@@ -9,7 +9,7 @@ const WatchlistWidget = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Dummy watchlist lists
-  const watchlists = ['WL 1', 'WL 2', 'Nifty 50', 'Tech', 'Holdings'];
+  const watchlists = ['All', 'WL 1', 'WL 2', 'Nifty 50', 'Tech', 'Holdings'];
   const currentTab = watchlists[activeTab];
 
   const filteredData = marketData.filter((stock) => {
@@ -18,6 +18,11 @@ const WatchlistWidget = () => {
                           
     if (searchQuery.trim() !== '') {
        return matchesSearch;
+    }
+    
+    // If 'All' tab is selected, show everything
+    if (currentTab === 'All') {
+      return true;
     }
     
     // Check if the stock has the tag corresponding to the current tab

@@ -29,7 +29,15 @@ const userSchema = new mongoose.Schema({
   },
   watchlist: [{
     type: String // We will store stock symbols here (e.g., 'AAPL')
-  }]
+  }],
+  twoFactorEnabled: {
+    type: Boolean,
+    default: false
+  },
+  marketingEmails: {
+    type: Boolean,
+    default: true
+  }
 }, {
   timestamps: true
 });

@@ -44,6 +44,8 @@ export const registerUser = async (req, res) => {
         address: user.address || '',
         availableMargin: user.availableMargin,
         watchlist: user.watchlist,
+        twoFactorEnabled: user.twoFactorEnabled,
+        marketingEmails: user.marketingEmails,
         token: generateToken(user._id),
       });
     } else {
@@ -73,6 +75,8 @@ export const loginUser = async (req, res) => {
         address: user.address || '',
         availableMargin: user.availableMargin,
         watchlist: user.watchlist,
+        twoFactorEnabled: user.twoFactorEnabled,
+        marketingEmails: user.marketingEmails,
         token: generateToken(user._id),
       });
     } else {
@@ -100,6 +104,8 @@ export const getUserProfile = async (req, res) => {
         createdAt: user.createdAt,
         availableMargin: user.availableMargin,
         watchlist: user.watchlist,
+        twoFactorEnabled: user.twoFactorEnabled,
+        marketingEmails: user.marketingEmails,
       });
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -120,6 +126,14 @@ export const updateUserProfile = async (req, res) => {
       user.name = req.body.name || user.name;
       user.phone = req.body.phone !== undefined ? req.body.phone : user.phone;
       user.address = req.body.address !== undefined ? req.body.address : user.address;
+      
+      if (req.body.twoFactorEnabled !== undefined) {
+        user.twoFactorEnabled = req.body.twoFactorEnabled;
+      }
+
+      if (req.body.marketingEmails !== undefined) {
+        user.marketingEmails = req.body.marketingEmails;
+      }
 
       if (req.body.password) {
         user.password = req.body.password;
@@ -136,6 +150,8 @@ export const updateUserProfile = async (req, res) => {
         createdAt: updatedUser.createdAt,
         availableMargin: updatedUser.availableMargin,
         watchlist: updatedUser.watchlist,
+        twoFactorEnabled: updatedUser.twoFactorEnabled,
+        marketingEmails: updatedUser.marketingEmails,
         token: generateToken(updatedUser._id),
       });
     } else {
@@ -184,6 +200,8 @@ export const googleLogin = async (req, res) => {
       address: user.address || '',
       availableMargin: user.availableMargin,
       watchlist: user.watchlist,
+      twoFactorEnabled: user.twoFactorEnabled,
+      marketingEmails: user.marketingEmails,
       token: generateToken(user._id),
       picture
     });

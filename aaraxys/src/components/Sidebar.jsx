@@ -1,8 +1,11 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, LineChart, Briefcase, ListOrdered, WalletCards, Settings, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Markets', path: '/markets', icon: <LineChart size={20} /> },
@@ -54,7 +57,14 @@ const Sidebar = () => {
         <NavLink to="/profile" title="Settings" className="flex items-center justify-center w-full aspect-square rounded-xl text-text-main/60 hover:bg-border/50 hover:text-text-main transition-colors">
           <Settings size={22} />
         </NavLink>
-        <button title="Logout" className="flex items-center justify-center w-full aspect-square rounded-xl text-danger/70 hover:bg-danger/10 hover:text-danger transition-colors">
+        <button 
+          onClick={() => {
+            logout();
+            navigate('/login');
+          }}
+          title="Logout" 
+          className="flex items-center justify-center w-full aspect-square rounded-xl text-danger/70 hover:bg-danger/10 hover:text-danger transition-colors"
+        >
           <LogOut size={22} />
         </button>
       </div>
