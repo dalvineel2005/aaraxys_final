@@ -24,7 +24,10 @@ const OrderModal = ({ isOpen, onClose, stock, type = 'BUY' }) => {
        return;
     }
 
-    if (isBuy && total > user.availableMargin) {
+    const validQuantity = Math.max(1, parseInt(quantity) || 1);
+    const orderTotal = validQuantity * (orderType === 'MARKET' ? stock.price : limitPrice);
+
+    if (isBuy && orderTotal > user.availableMargin) {
        addToast('Insufficient margin for this trade', 'error');
        return;
     }
@@ -34,12 +37,12 @@ const OrderModal = ({ isOpen, onClose, stock, type = 'BUY' }) => {
       await api.post('/orders', {
         symbol: stock.symbol,
         type,
-        quantity,
+        quantity: validQuantity,
         price: orderType === 'MARKET' ? stock.price : limitPrice,
         orderType
       });
       
-      addToast(`${type} order placed for ${quantity} ${stock.symbol}`, 'success');
+      addToast(`${type} order placed for ${validQuantity} ${stock.symbol}`, 'success');
       refreshProfile(); // Refresh available margin
       onClose();
     } catch (error) {
@@ -61,7 +64,7 @@ const OrderModal = ({ isOpen, onClose, stock, type = 'BUY' }) => {
               {type} {stock.symbol} 
               <span className="text-xs bg-black/20 px-1.5 py-0.5 rounded font-normal">NSE</span>
             </h3>
-            <p className="text-sm opacity-90 mt-0.5">₹{stock.price.toFixed(2)} x 1 Qty</p>
+            <p className="text-sm opacity-90 mt-0.5">₹{stock.price.toFixed(2)} x {quantity || 0} Qty</p>
           </div>
           <button onClick={onClose} className="text-white/80 hover:text-white p-1">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -94,7 +97,14 @@ const OrderModal = ({ isOpen, onClose, stock, type = 'BUY' }) => {
                  type="number" 
                  min="1"
                  value={quantity}
-                 onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                 onChange={(e) => {
+                   const val = e.target.value;
+                   if (val === '') {
+                     setQuantity('');
+                   } else {
+                     setQuantity(Math.max(1, parseInt(val) || 1));
+                   }
+                 }}
                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-text-main focus:outline-none focus:border-primary transition-colors"
                />
              </div>
