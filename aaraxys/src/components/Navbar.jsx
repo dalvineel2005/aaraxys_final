@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useMarketData } from '../context/MarketContext';
 
-const Navbar = () => {
+const Navbar = ({ onToggleSidebar }) => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -111,7 +111,7 @@ const Navbar = () => {
       {/* Mobile Logo / Search */}
       <div className="flex items-center gap-4 flex-1">
         <div className="md:hidden flex items-center gap-3">
-           <button className="text-text-main/70 hover:text-text-main p-1">
+           <button onClick={onToggleSidebar} className="text-text-main/70 hover:text-text-main p-1">
              <Menu size={24} />
            </button>
            <img src="/logo.png" alt="ARAYXS" className="w-8 h-8 object-contain rounded-lg shadow-sm" />

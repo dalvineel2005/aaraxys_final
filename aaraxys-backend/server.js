@@ -16,9 +16,13 @@ connectDB();
 
 const app = express();
 const httpServer = createServer(app);
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',')
+  : ['http://localhost:5173', 'http://localhost:3000'];
+
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // allow frontend access
+    origin: allowedOrigins,
     methods: ["GET", "POST"]
   }
 });
@@ -27,7 +31,10 @@ const io = new Server(httpServer, {
 app.use(express.json());
 
 // Enable CORS
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 
 // API Routes
 app.use('/api/auth', authRoutes);

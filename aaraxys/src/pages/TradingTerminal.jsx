@@ -288,6 +288,24 @@ const TradingTerminal = () => {
             </div>
          </div>
       )}
+
+      {/* Mobile Sticky Buy/Sell Bar */}
+      {activeStock && (
+        <div className="sm:hidden fixed bottom-16 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-border p-3 flex gap-3">
+          <button 
+            onClick={() => openOrderModal(activeStock, 'BUY')}
+            className="flex-1 py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover transition-colors"
+          >
+            BUY
+          </button>
+          <button 
+            onClick={() => openOrderModal(activeStock, 'SELL')}
+            className="flex-1 py-3 bg-danger text-white rounded-lg font-bold hover:bg-red-700 transition-colors"
+          >
+            SELL
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, LineChart, Briefcase, ListOrdered, WalletCards, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const Sidebar = () => {
+const Sidebar = ({ onNavigate }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const navLinks = [
@@ -27,6 +27,7 @@ const Sidebar = () => {
             key={link.name}
             to={link.path}
             title={link.name}
+            onClick={onNavigate}
             className={({ isActive }) =>
               `flex flex-col items-center justify-center w-full aspect-square rounded-xl transition-all duration-200 group relative
               ${isActive
@@ -54,7 +55,7 @@ const Sidebar = () => {
       
       {/* Bottom Actions */}
       <div className="p-2 border-t border-border mt-auto flex flex-col gap-2">
-        <NavLink to="/profile" title="Settings" className="flex items-center justify-center w-full aspect-square rounded-xl text-text-main/60 hover:bg-border/50 hover:text-text-main transition-colors">
+        <NavLink to="/profile" title="Settings" onClick={onNavigate} className="flex items-center justify-center w-full aspect-square rounded-xl text-text-main/60 hover:bg-border/50 hover:text-text-main transition-colors">
           <Settings size={22} />
         </NavLink>
         <button 

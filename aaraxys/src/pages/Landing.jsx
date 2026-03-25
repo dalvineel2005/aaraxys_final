@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { TrendingUp, Shield, BarChart2, Activity, Sun, Moon } from 'lucide-react';
+import { TrendingUp, Shield, BarChart2, Activity, Sun, Moon, Menu, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const Landing = () => {
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const features = [
     { icon: <TrendingUp size={24} className="text-primary" />, title: 'Lightning Fast', desc: 'Execute trades in milliseconds. Never miss a market movement.' },
@@ -32,10 +33,27 @@ const Landing = () => {
             {isDarkMode ? <Sun size={20} strokeWidth={1.5} /> : <Moon size={20} strokeWidth={1.5} />}
           </button>
           
-          <button onClick={() => navigate('/login')} className="px-5 py-2 hover:text-primary transition-colors">Login</button>
-          <button onClick={() => navigate('/signup')} className="px-5 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">Sign Up</button>
+          {/* Desktop buttons */}
+          <button onClick={() => navigate('/login')} className="hidden sm:block px-5 py-2 hover:text-primary transition-colors">Login</button>
+          <button onClick={() => navigate('/signup')} className="hidden sm:block px-5 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">Sign Up</button>
+          
+          {/* Mobile hamburger */}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="sm:hidden p-2 text-text-main/70 hover:text-text-main transition-colors"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </nav>
+
+      {/* Mobile dropdown menu */}
+      {mobileMenuOpen && (
+        <div className="sm:hidden bg-surface border-b border-border px-6 py-4 flex flex-col gap-3 animate-in slide-in-from-top duration-200 sticky top-20 z-40">
+          <button onClick={() => { navigate('/login'); setMobileMenuOpen(false); }} className="w-full py-3 text-center hover:text-primary transition-colors font-medium border border-border rounded-lg">Login</button>
+          <button onClick={() => { navigate('/signup'); setMobileMenuOpen(false); }} className="w-full py-3 text-center bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium">Sign Up</button>
+        </div>
+      )}
 
       {/* Hero Section */}
       <main className="flex-1 flex flex-col items-center pt-24 pb-20 px-6 sm:px-12 text-center w-full max-w-6xl mx-auto">
