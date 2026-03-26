@@ -2,21 +2,23 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, LineChart, Briefcase, WalletCards, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 const MobileBottomNav = () => {
   const [showMore, setShowMore] = useState(false);
+  const { t } = useLanguage();
 
   const mainLinks = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Markets', path: '/markets', icon: LineChart },
-    { name: 'Terminal', path: '/trade', icon: LineChart },
-    { name: 'Portfolio', path: '/portfolio', icon: Briefcase },
+    { name: t('dashboard'), path: '/dashboard', icon: LayoutDashboard },
+    { name: t('markets'), path: '/markets', icon: LineChart },
+    { name: t('terminal'), path: '/trade', icon: LineChart },
+    { name: t('portfolio'), path: '/portfolio', icon: Briefcase },
   ];
 
   const moreLinks = [
-    { name: 'Orders', path: '/orders' },
-    { name: 'Funds', path: '/funds' },
-    { name: 'Profile', path: '/profile' },
+    { name: t('orders'), path: '/orders' },
+    { name: t('funds'), path: '/funds' },
+    { name: t('profile'), path: '/profile' },
   ];
 
   return (
@@ -79,7 +81,7 @@ const MobileBottomNav = () => {
           }`}
         >
           <MoreHorizontal size={20} strokeWidth={1.5} />
-          <span className="text-[10px] font-medium">More</span>
+          <span className="text-[10px] font-medium">{t('more')}</span>
         </button>
       </nav>
     </>

@@ -21,11 +21,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const Profile = () => {
    const { user, logout, updateProfile } = useAuth();
    const navigate = useNavigate();
    const { addToast } = useToast();
+   const { t, language, setLanguage, languageNames } = useLanguage();
    const [activeTab, setActiveTab] = useState('personal');
    const [isEditing, setIsEditing] = useState(false);
    const [isLoading, setIsLoading] = useState(false);
@@ -100,8 +102,8 @@ const Profile = () => {
    return (
       <div className="p-6 h-full flex flex-col animate-in fade-in duration-500 max-w-5xl mx-auto w-full">
          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-text-main tracking-tight">Account</h1>
-            <p className="text-text-main/60 mt-1">Manage your personal information and preferences.</p>
+            <h1 className="text-2xl font-bold text-text-main tracking-tight">{t('account')}</h1>
+            <p className="text-text-main/60 mt-1">{t('accountSubtitle')}</p>
          </div>
 
          <div className="flex flex-col md:flex-row gap-6">
@@ -112,25 +114,25 @@ const Profile = () => {
                   onClick={() => setActiveTab('personal')}
                   className={navButtonClasses('personal')}
                >
-                  <User size={18} /> Personal Info
+                  <User size={18} /> {t('personalInfo')}
                </button>
                <button
                   onClick={() => setActiveTab('security')}
                   className={navButtonClasses('security')}
                >
-                  <Lock size={18} /> Password & Security
+                  <Lock size={18} /> {t('passwordSecurity')}
                </button>
                <button
                   onClick={() => setActiveTab('bank')}
                   className={navButtonClasses('bank')}
                >
-                  <CreditCard size={18} /> Bank Details
+                  <CreditCard size={18} /> {t('bankDetails')}
                </button>
                <button
                   onClick={() => setActiveTab('preferences')}
                   className={navButtonClasses('preferences')}
                >
-                  <Settings size={18} /> Preferences
+                  <Settings size={18} /> {t('preferences')}
                </button>
 
                <div className="pt-6 mt-6 border-t border-border">
@@ -141,7 +143,7 @@ const Profile = () => {
                      }}
                      className="w-full flex items-center gap-3 px-4 py-3 text-danger/80 hover:bg-danger/10 hover:text-danger rounded-lg transition-colors font-medium"
                   >
-                     <LogOut size={18} /> Sign Out
+                     <LogOut size={18} /> {t('signOut')}
                   </button>
                </div>
             </div>
@@ -169,7 +171,7 @@ const Profile = () => {
                         <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded font-medium">
                            U{(user?._id || '12498').substring(0, 5).toUpperCase()}
                         </span>
-                        Joined {new Date(user?.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        {t('joined')} {new Date(user?.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                      </p>
                   </div>
 
@@ -180,14 +182,14 @@ const Profile = () => {
                            disabled={isLoading}
                            className="px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-border/50 text-text-main transition-colors flex items-center gap-2"
                         >
-                           <X size={16} /> Cancel
+                           <X size={16} /> {t('cancel')}
                         </button>
                         <button
                            onClick={handleSaveProfile}
                            disabled={isLoading}
                            className="px-4 py-2 bg-primary text-[#0d0d12] rounded-lg text-sm font-medium hover:bg-primary-hover transition-colors flex items-center gap-2 disabled:opacity-50"
                         >
-                           <Save size={16} /> {isLoading ? 'Saving...' : 'Save Changes'}
+                           <Save size={16} /> {isLoading ? t('saving') : t('saveChanges')}
                         </button>
                      </div>
                   ) : (
@@ -195,7 +197,7 @@ const Profile = () => {
                         onClick={() => setIsEditing(true)}
                         className="ml-auto px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-border/50 text-text-main transition-colors flex items-center gap-2"
                      >
-                        <Edit2 size={16} /> Edit Profile
+                        <Edit2 size={16} /> {t('editProfile')}
                      </button>
                   )}
                </div>
@@ -203,20 +205,20 @@ const Profile = () => {
                {activeTab === 'personal' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                      <div>
-                        <h3 className="text-sm font-bold text-text-main mb-4 uppercase tracking-wider">Contact Information</h3>
+                        <h3 className="text-sm font-bold text-text-main mb-4 uppercase tracking-wider">{t('contactInformation')}</h3>
                         <div className="space-y-4">
                            <div className="flex gap-4 items-start">
                               <Mail size={18} className="text-text-main/50 mt-0.5" />
                               <div className="flex-1">
-                                 <p className="text-sm text-text-main/60 mb-0.5">Email Address</p>
-                                 <p className="font-medium text-text-main">{user?.email || 'Not provided'}</p>
-                                 {isEditing && <p className="text-xs text-text-main/40 mt-1">Email cannot be changed.</p>}
+                                 <p className="text-sm text-text-main/60 mb-0.5">{t('emailAddress')}</p>
+                                 <p className="font-medium text-text-main">{user?.email || t('notProvided')}</p>
+                                 {isEditing && <p className="text-xs text-text-main/40 mt-1">{t('emailCannotChange')}</p>}
                               </div>
                            </div>
                            <div className="flex gap-4 items-start">
                               <Phone size={18} className="text-text-main/50 mt-0.5" />
                               <div className="flex-1">
-                                 <p className="text-sm text-text-main/60 mb-0.5">Phone Number</p>
+                                 <p className="text-sm text-text-main/60 mb-0.5">{t('phoneNumber')}</p>
                                  {isEditing ? (
                                     <input
                                        type="text"
@@ -228,7 +230,7 @@ const Profile = () => {
                                     />
                                  ) : (
                                     <p className={`font-medium ${user?.phone ? 'text-text-main' : 'text-text-main/50 italic'}`}>
-                                       {user?.phone || 'Not added yet'}
+                                       {user?.phone || t('notAddedYet')}
                                     </p>
                                  )}
                               </div>
@@ -237,12 +239,12 @@ const Profile = () => {
                      </div>
 
                      <div>
-                        <h3 className="text-sm font-bold text-text-main mb-4 uppercase tracking-wider">Address details</h3>
+                        <h3 className="text-sm font-bold text-text-main mb-4 uppercase tracking-wider">{t('addressDetails')}</h3>
                         <div className="space-y-4">
                            <div className="flex gap-4 items-start">
                               <MapPin size={18} className="text-text-main/50 mt-0.5" />
                               <div className="flex-1">
-                                 <p className="font-medium text-text-main mb-1">Residential Address</p>
+                                 <p className="font-medium text-text-main mb-1">{t('residentialAddress')}</p>
                                  {isEditing ? (
                                     <textarea
                                        name="address"
@@ -254,7 +256,7 @@ const Profile = () => {
                                     ></textarea>
                                  ) : (
                                     <p className={`text-sm leading-relaxed ${user?.address ? 'text-text-main/80' : 'text-text-main/50 italic mt-1'}`}>
-                                       {user?.address || 'Not added yet'}
+                                       {user?.address || t('notAddedYet')}
                                     </p>
                                  )}
                               </div>
@@ -267,29 +269,29 @@ const Profile = () => {
                {activeTab === 'security' && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                      <div>
-                        <h3 className="text-sm font-bold text-text-main mb-6 uppercase tracking-wider">Change Password</h3>
+                        <h3 className="text-sm font-bold text-text-main mb-6 uppercase tracking-wider">{t('changePassword')}</h3>
                         <form className="max-w-md space-y-4">
                            <div>
-                              <label className="block text-sm text-text-main/60 mb-1.5">Current Password</label>
+                              <label className="block text-sm text-text-main/60 mb-1.5">{t('currentPassword')}</label>
                               <input type="password" placeholder="••••••••" className="w-full bg-background border border-border rounded-lg px-4 py-2 text-text-main focus:outline-none focus:border-primary/50 transition-colors" />
                            </div>
                            <div>
-                              <label className="block text-sm text-text-main/60 mb-1.5">New Password</label>
+                              <label className="block text-sm text-text-main/60 mb-1.5">{t('newPassword')}</label>
                               <input type="password" placeholder="••••••••" className="w-full bg-background border border-border rounded-lg px-4 py-2 text-text-main focus:outline-none focus:border-primary/50 transition-colors" />
                            </div>
                            <div>
-                              <label className="block text-sm text-text-main/60 mb-1.5">Confirm New Password</label>
+                              <label className="block text-sm text-text-main/60 mb-1.5">{t('confirmNewPassword')}</label>
                               <input type="password" placeholder="••••••••" className="w-full bg-background border border-border rounded-lg px-4 py-2 text-text-main focus:outline-none focus:border-primary/50 transition-colors" />
                            </div>
                            <button type="button" className="px-4 py-2 bg-primary text-[#0d0d12] font-semibold rounded-lg hover:bg-primary/90 transition-colors mt-2">
-                              Update Password
+                              {t('updatePassword')}
                            </button>
                         </form>
                      </div>
 
                      <div className="pt-8 border-t border-border">
                         <div className="flex items-center justify-between mb-2">
-                           <h3 className="text-sm font-bold text-text-main uppercase tracking-wider">Two-Factor Authentication</h3>
+                           <h3 className="text-sm font-bold text-text-main uppercase tracking-wider">{t('twoFactorAuth')}</h3>
                            <button
                               onClick={async () => {
                                  if (isLoading) return;
@@ -314,7 +316,7 @@ const Profile = () => {
                            </button>
                         </div>
                         <p className="text-sm text-text-main/60 max-w-lg">
-                           Add an extra layer of security to your account by requiring a verification code when you sign in.
+                           {t('twoFactorDesc')}
                         </p>
                      </div>
                   </div>
@@ -324,12 +326,12 @@ const Profile = () => {
                   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                      <div>
                         <div className="flex items-center justify-between mb-6">
-                           <h3 className="text-sm font-bold text-text-main uppercase tracking-wider">Payment Methods</h3>
+                           <h3 className="text-sm font-bold text-text-main uppercase tracking-wider">{t('paymentMethods')}</h3>
                            <button
                               onClick={() => setShowCardModal(true)}
                               className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
                            >
-                              + Add New
+                              {t('addNew')}
                            </button>
                         </div>
 
@@ -343,12 +345,12 @@ const Profile = () => {
                                  <div className="relative z-10 flex flex-col h-full justify-between gap-6">
                                     <div className="flex justify-between items-start">
                                        <div className="font-bold text-white tracking-wider">{card.type}</div>
-                                       {card.isPrimary && <span className="text-xs font-medium bg-green-500/20 text-green-400 px-2 py-1 rounded">Primary</span>}
+                                       {card.isPrimary && <span className="text-xs font-medium bg-green-500/20 text-green-400 px-2 py-1 rounded">{t('primary')}</span>}
                                     </div>
                                     <div className="mt-auto">
                                        <p className="text-white/60 font-mono text-sm tracking-widest mb-1">•••• •••• •••• {card.last4}</p>
                                        <div className="flex justify-between items-center">
-                                          <p className="text-white text-sm font-medium">{card.name || user?.name || 'Cardholder Name'}</p>
+                                          <p className="text-white text-sm font-medium">{card.name || user?.name || t('cardholderName')}</p>
                                           <p className="text-white/60 text-sm">{card.expiry}</p>
                                        </div>
                                     </div>
@@ -364,19 +366,19 @@ const Profile = () => {
                               <div className="w-10 h-10 rounded-full bg-border/50 flex items-center justify-center">
                                  <span className="text-xl">+</span>
                               </div>
-                              <span className="text-sm font-medium">Add new card</span>
+                              <span className="text-sm font-medium">{t('addNewCard')}</span>
                            </button>
                         </div>
                      </div>
 
                      <div className="pt-8 border-t border-border">
-                        <h3 className="text-sm font-bold text-text-main mb-4 uppercase tracking-wider">Billing History</h3>
+                        <h3 className="text-sm font-bold text-text-main mb-4 uppercase tracking-wider">{t('billingHistory')}</h3>
                         <div className="text-center py-8">
                            <div className="w-16 h-16 rounded-full bg-border/50 flex items-center justify-center mx-auto mb-4">
                               <CreditCard size={24} className="text-text-main/40" />
                            </div>
-                           <p className="text-text-main font-medium">No transactions yet</p>
-                           <p className="text-sm text-text-main/50 mt-1">Your recent payments will appear here.</p>
+                           <p className="text-text-main font-medium">{t('noTransactionsYet')}</p>
+                           <p className="text-sm text-text-main/50 mt-1">{t('recentPayments')}</p>
                         </div>
                      </div>
                   </div>
@@ -385,12 +387,12 @@ const Profile = () => {
                {activeTab === 'preferences' && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                      <div>
-                        <h3 className="text-sm font-bold text-text-main mb-6 uppercase tracking-wider">Notifications</h3>
+                        <h3 className="text-sm font-bold text-text-main mb-6 uppercase tracking-wider">{t('notificationsTitle')}</h3>
                         <div className="space-y-4 max-w-xl">
                            <div className="flex items-center justify-between p-4 rounded-lg bg-background border border-border">
                               <div>
-                                 <p className="font-medium text-text-main text-sm">Security Alerts</p>
-                                 <p className="text-xs text-text-main/50 mt-0.5">Get notified about new logins and security updates</p>
+                                 <p className="font-medium text-text-main text-sm">{t('securityAlerts')}</p>
+                                 <p className="text-xs text-text-main/50 mt-0.5">{t('securityAlertsDesc')}</p>
                               </div>
                               <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary transition-colors focus:outline-none">
                                  <span className="inline-block h-4 w-4 transform rounded-full bg-[#0d0d12] transition-transform translate-x-6" />
@@ -398,8 +400,8 @@ const Profile = () => {
                            </div>
                            <div className="flex items-center justify-between p-4 rounded-lg bg-background border border-border">
                               <div>
-                                 <p className="font-medium text-text-main text-sm">Marketing Emails</p>
-                                 <p className="text-xs text-text-main/50 mt-0.5">Receive news about new features and updates</p>
+                                 <p className="font-medium text-text-main text-sm">{t('marketingEmails')}</p>
+                                 <p className="text-xs text-text-main/50 mt-0.5">{t('marketingEmailsDesc')}</p>
                               </div>
                               <button
                                  onClick={async () => {
@@ -426,8 +428,8 @@ const Profile = () => {
                            </div>
                            <div className="flex items-center justify-between p-4 rounded-lg bg-background border border-border">
                               <div>
-                                 <p className="font-medium text-text-main text-sm">Activity Digest</p>
-                                 <p className="text-xs text-text-main/50 mt-0.5">Weekly summary of your account activity</p>
+                                 <p className="font-medium text-text-main text-sm">{t('activityDigest')}</p>
+                                 <p className="text-xs text-text-main/50 mt-0.5">{t('activityDigestDesc')}</p>
                               </div>
                               <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary transition-colors focus:outline-none">
                                  <span className="inline-block h-4 w-4 transform rounded-full bg-[#0d0d12] transition-transform translate-x-6" />
@@ -437,38 +439,41 @@ const Profile = () => {
                      </div>
 
                      <div className="pt-8 border-t border-border">
-                        <h3 className="text-sm font-bold text-text-main mb-6 uppercase tracking-wider">Display</h3>
+                        <h3 className="text-sm font-bold text-text-main mb-6 uppercase tracking-wider">{t('display')}</h3>
                         <div className="max-w-xl space-y-6">
                            <div>
-                              <label className="block text-sm font-medium text-text-main mb-3">Theme</label>
+                              <label className="block text-sm font-medium text-text-main mb-3">{t('theme')}</label>
                               <div className="grid grid-cols-3 gap-3">
                                  <button
                                     onClick={() => setTheme('dark')}
                                     className={`border-2 rounded-lg p-3 flex flex-col items-center gap-2 transition-all ${theme === 'dark' ? 'border-primary bg-primary/5' : 'border-border bg-background'}`}
                                  >
                                     <div className="w-full h-12 bg-[#0b0f19] border border-border rounded-md"></div>
-                                    <span className={`text-xs font-medium ${theme === 'dark' ? 'text-primary' : 'text-text-main/60'}`}>Dark</span>
+                                    <span className={`text-xs font-medium ${theme === 'dark' ? 'text-primary' : 'text-text-main/60'}`}>{t('dark')}</span>
                                  </button>
                                  <button
                                     onClick={() => setTheme('light')}
                                     className={`border-2 rounded-lg p-3 flex flex-col items-center gap-2 transition-all ${theme === 'light' ? 'border-primary bg-primary/5' : 'border-border bg-background'}`}
                                  >
                                     <div className="w-full h-12 bg-[#f8fafc] border border-border rounded-md"></div>
-                                    <span className={`text-xs font-medium ${theme === 'light' ? 'text-primary' : 'text-text-main/60'}`}>Light</span>
+                                    <span className={`text-xs font-medium ${theme === 'light' ? 'text-primary' : 'text-text-main/60'}`}>{t('light')}</span>
                                  </button>
                                  <button className="border border-border opacity-50 cursor-not-allowed bg-background rounded-lg p-3 flex flex-col items-center gap-2">
                                     <div className="w-full h-12 bg-gradient-to-r from-[#0b0f19] to-[#f8fafc] border border-border rounded-md"></div>
-                                    <span className="text-xs font-medium text-text-main/50">System</span>
+                                    <span className="text-xs font-medium text-text-main/50">{t('system')}</span>
                                  </button>
                               </div>
                            </div>
                            <div>
-                              <label className="block text-sm font-medium text-text-main mb-2">Language</label>
-                              <select className="w-full bg-background border border-border rounded-lg px-4 py-2 text-text-main focus:outline-none focus:border-primary/50 transition-colors appearance-none">
-                                 <option>English (US)</option>
-                                 <option>Spanish</option>
-                                 <option>French</option>
-                                 <option>German</option>
+                              <label className="block text-sm font-medium text-text-main mb-2">{t('language')}</label>
+                              <select
+                                 value={language}
+                                 onChange={(e) => setLanguage(e.target.value)}
+                                 className="w-full bg-background border border-border rounded-lg px-4 py-2 text-text-main focus:outline-none focus:border-primary/50 transition-colors appearance-none"
+                              >
+                                 {Object.entries(languageNames).map(([code, name]) => (
+                                    <option key={code} value={code}>{name}</option>
+                                 ))}
                               </select>
                            </div>
                         </div>
@@ -483,7 +488,7 @@ const Profile = () => {
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
                <div className="w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                   <div className="p-6 border-b border-border flex justify-between items-center bg-background/50">
-                     <h3 className="text-lg font-bold text-text-main">Add New Card</h3>
+                     <h3 className="text-lg font-bold text-text-main">{t('addNewCardTitle')}</h3>
                      <button onClick={() => setShowCardModal(false)} className="text-text-main/50 hover:text-text-main transition-colors">
                         <X size={20} />
                      </button>
@@ -508,7 +513,7 @@ const Profile = () => {
                      setNewCard({ type: 'Visa', number: '', expiry: '', name: '' });
                   }}>
                      <div>
-                        <label className="block text-sm font-medium text-text-main/70 mb-1.5">Card Type</label>
+                        <label className="block text-sm font-medium text-text-main/70 mb-1.5">{t('cardType')}</label>
                         <select
                            className="w-full bg-background border border-border rounded-lg px-4 py-2 text-text-main focus:outline-none focus:border-primary/50 transition-colors"
                            value={newCard.type}
@@ -520,7 +525,7 @@ const Profile = () => {
                         </select>
                      </div>
                      <div>
-                        <label className="block text-sm font-medium text-text-main/70 mb-1.5">Card Number</label>
+                        <label className="block text-sm font-medium text-text-main/70 mb-1.5">{t('cardNumber')}</label>
                         <input
                            type="text"
                            placeholder="0000 0000 0000 0000"
@@ -532,7 +537,7 @@ const Profile = () => {
                      </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                           <label className="block text-sm font-medium text-text-main/70 mb-1.5">Expiry Date</label>
+                           <label className="block text-sm font-medium text-text-main/70 mb-1.5">{t('expiryDate')}</label>
                            <input
                               type="text"
                               placeholder="MM/YY"
@@ -553,7 +558,7 @@ const Profile = () => {
                         </div>
                      </div>
                      <div>
-                        <label className="block text-sm font-medium text-text-main/70 mb-1.5">Cardholder Name</label>
+                        <label className="block text-sm font-medium text-text-main/70 mb-1.5">{t('cardholderName')}</label>
                         <input
                            type="text"
                            placeholder="e.g. John Doe"
@@ -563,7 +568,7 @@ const Profile = () => {
                         />
                      </div>
                      <button type="submit" className="w-full py-3 bg-primary text-[#0d0d12] font-bold rounded-xl hover:bg-primary/90 transition-colors mt-4">
-                        Add Card
+                        {t('addCard')}
                      </button>
                   </form>
                </div>

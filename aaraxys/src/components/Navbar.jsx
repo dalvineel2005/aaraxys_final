@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useMarketData } from '../context/MarketContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const Navbar = ({ onToggleSidebar }) => {
   const { isDarkMode, toggleTheme } = useTheme();
@@ -12,6 +13,7 @@ const Navbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const { marketData, setActiveStock } = useMarketData();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -129,7 +131,7 @@ const Navbar = ({ onToggleSidebar }) => {
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => searchQuery && setShowSearchResults(true)}
             className="block w-full pl-10 pr-3 py-2 border border-border rounded-lg leading-5 bg-background focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all sm:text-sm text-text-main placeholder-text-main/50"
-            placeholder="Search stocks, ETF, Indices..."
+            placeholder={t('searchPlaceholder')}
           />
           {/* Keyboard shortcut hint */}
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -161,7 +163,7 @@ const Navbar = ({ onToggleSidebar }) => {
                   ))
                 ) : (
                   <div className="p-4 text-center text-text-main/50 text-sm">
-                    No results found for "{searchQuery}"
+                    {t('noResults')} "{searchQuery}"
                   </div>
                 )}
               </div>
@@ -198,14 +200,14 @@ const Navbar = ({ onToggleSidebar }) => {
             <div className="absolute right-0 mt-2 w-80 bg-surface border border-border rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                <div className="p-4 border-b border-border flex justify-between items-center">
                   <h3 className="font-bold text-text-main flex items-center gap-2">
-                     Notifications
+                     {t('notifications')}
                      {unreadCount > 0 && (
                         <span className="bg-primary/20 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-bold">{unreadCount}</span>
                      )}
                   </h3>
                   {unreadCount > 0 && (
                      <button onClick={handleMarkAllRead} className="text-xs text-primary hover:text-primary-hover transition-colors">
-                        Mark all as read
+                        {t('markAllRead')}
                      </button>
                   )}
                </div>
@@ -213,7 +215,7 @@ const Navbar = ({ onToggleSidebar }) => {
                   {notifications.length === 0 ? (
                      <div className="p-4 text-center text-text-main/50 text-sm flex flex-col items-center">
                         <Bell size={24} className="mb-2 opacity-20" />
-                        <p>No new notifications</p>
+                        <p>{t('noNewNotifications')}</p>
                      </div>
                   ) : (
                      notifications.map((notif) => (
@@ -243,7 +245,7 @@ const Navbar = ({ onToggleSidebar }) => {
                     onClick={() => { setShowNotifications(false); navigate('/profile'); }}
                     className="text-sm text-text-main/70 hover:text-text-main font-medium"
                   >
-                    View All Activity
+                    {t('viewAllActivity')}
                   </button>
                </div>
             </div>

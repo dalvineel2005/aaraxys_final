@@ -4,7 +4,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import { MarketProvider } from './context/MarketContext';
 import { ToastProvider } from './context/ToastContext';
 import { OrderProvider } from './context/OrderContext';
-import { AuthProvider } from './context/AuthContext'; // Added AuthProvider import
+import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import DashboardLayout from './components/Layout/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Markets from './pages/Markets';
@@ -44,6 +45,7 @@ ChartJS.register(
 
 function App() {
   return (
+    <LanguageProvider>
     <ThemeProvider>
       <MarketProvider>
         <ToastProvider>
@@ -76,6 +78,7 @@ function App() {
         </ToastProvider>
       </MarketProvider>
     </ThemeProvider>
+    </LanguageProvider>
   );
 }
 

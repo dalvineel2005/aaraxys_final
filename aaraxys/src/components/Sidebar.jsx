@@ -2,17 +2,19 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, LineChart, Briefcase, ListOrdered, WalletCards, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const Sidebar = ({ onNavigate }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const navLinks = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Markets', path: '/markets', icon: <LineChart size={20} /> },
-    { name: 'Terminal', path: '/trade', icon: <LineChart size={20} /> }, // Can use different icon
-    { name: 'Portfolio', path: '/portfolio', icon: <Briefcase size={20} /> },
-    { name: 'Orders', path: '/orders', icon: <ListOrdered size={20} /> },
-    { name: 'Funds', path: '/funds', icon: <WalletCards size={20} /> },
+    { name: t('dashboard'), path: '/dashboard', icon: <LayoutDashboard size={20} /> },
+    { name: t('markets'), path: '/markets', icon: <LineChart size={20} /> },
+    { name: t('terminal'), path: '/trade', icon: <LineChart size={20} /> },
+    { name: t('portfolio'), path: '/portfolio', icon: <Briefcase size={20} /> },
+    { name: t('orders'), path: '/orders', icon: <ListOrdered size={20} /> },
+    { name: t('funds'), path: '/funds', icon: <WalletCards size={20} /> },
   ];
   return (
     <aside className="w-20 md:w-[72px] flex flex-col h-full bg-sidebar-bg border-r border-border transition-all duration-300">
