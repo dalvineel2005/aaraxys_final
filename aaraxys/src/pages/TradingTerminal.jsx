@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useMarketData } from '../context/MarketContext';
 import { useOrder } from '../context/OrderContext';
-import { Line } from 'react-chartjs-2';
-import { Maximize2, Activity, ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react';
+import CandlestickChart from '../components/CandlestickChart';
+import { Maximize2, Activity, ArrowLeft, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 
 const TradingTerminal = () => {
   const { marketData, activeStock, setActiveStock } = useMarketData();
@@ -12,9 +12,8 @@ const TradingTerminal = () => {
   const [orderType, setOrderType] = useState('Regular');
   const [isFullscreen, setIsFullscreen] = useState(false);
   
-  // Generating a realistic looking dummy chart
-  const [dummyLabels, setDummyLabels] = useState([]);
-  const [dummyDataPoints, setDummyDataPoints] = useState([]);
+  // Generate OHLC candlestick data
+  const [ohlcData, setOhlcData] = useState([]);
 
   React.useEffect(() => {
      let price = activeStock?.price || 100;
@@ -22,82 +21,41 @@ const TradingTerminal = () => {
      let volatility = 2;
 
      switch(timeframe) {
-       case '1W': dataLength = 70; volatility = 5; break;
+       case '1W': dataLength = 35; volatility = 5; break;
        case '1M': dataLength = 30; volatility = 10; break;
-       case '3M': dataLength = 90; volatility = 15; break;
-       case '1Y': dataLength = 120; volatility = 25; break;
-       case 'ALL': dataLength = 240; volatility = 40; break;
-       case '1D': default: dataLength = 60; volatility = 2; break;
+       case '3M': dataLength = 60; volatility = 15; break;
+       case '1Y': dataLength = 52; volatility = 25; break;
+       case 'ALL': dataLength = 80; volatility = 40; break;
+       case '1D': default: dataLength = 40; volatility = 2; break;
      }
 
-     const points = Array.from({length: dataLength}, () => {
-       price = price + (Math.random() - 0.5) * volatility;
-       return price;
-     });
-     
-     const labels = Array.from({length: dataLength}, (_, i) => {
-        if (timeframe === '1D') return `${Math.floor(i/60) + 9}:${(i%60).toString().padStart(2, '0')}`;
-        return `T-${dataLength - i}`;
+     const candles = Array.from({length: dataLength}, (_, i) => {
+       const open = price;
+       const move1 = (Math.random() - 0.5) * volatility;
+       const move2 = (Math.random() - 0.5) * volatility;
+       const close = open + move1 + move2 * 0.5;
+       const high = Math.max(open, close) + Math.random() * volatility * 0.5;
+       const low = Math.min(open, close) - Math.random() * volatility * 0.5;
+       price = close;
+
+       let label;
+       if (timeframe === '1D') {
+         const hour = Math.floor(i * 6 / dataLength) + 9;
+         const min = Math.floor((i * 360 / dataLength) % 60);
+         label = `${hour}:${min.toString().padStart(2, '0')}`;
+       } else if (timeframe === '1W') {
+         label = `D${i + 1}`;
+       } else {
+         label = `T-${dataLength - i}`;
+       }
+
+       return { open, high, low, close, label };
      });
 
-     setDummyDataPoints(points);
-     setDummyLabels(labels);
+     setOhlcData(candles);
   }, [activeStock?.symbol, activeStock?.price, timeframe]);
 
-  const chartData = {
-    labels: dummyLabels,
-    datasets: [
-      {
-        label: 'Price',
-        data: dummyDataPoints,
-        borderColor: '#2563eb', // primary
-        backgroundColor: (context) => {
-          const ctx = context.chart.ctx;
-          const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-          gradient.addColorStop(0, 'rgba(37, 99, 235, 0.4)');
-          gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
-          return gradient;
-        },
-        fill: true,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-        tension: 0.1,
-        borderWidth: 2,
-      }
-    ]
-  };
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        mode: 'index',
-        intersect: false,
-        backgroundColor: 'rgba(17, 24, 39, 0.8)',
-        titleColor: '#fff',
-        bodyColor: '#fff',
-        borderColor: 'rgba(255,255,255,0.1)',
-        borderWidth: 1,
-      }
-    },
-    scales: {
-      x: { 
-        grid: { color: 'rgba(156, 163, 175, 0.1)' },
-        ticks: { maxTicksLimit: 6, color: 'rgba(156, 163, 175, 0.7)' }
-      },
-      y: {
-        position: 'right',
-        grid: { color: 'rgba(156, 163, 175, 0.1)' },
-        ticks: { color: 'rgba(156, 163, 175, 0.7)' }
-      }
-    },
-    interaction: {
-      mode: 'index',
-      intersect: false,
-    },
-  };
 
   const currentPrice = activeStock?.price || 0;
   const isUp = (activeStock?.change || 0) >= 0;
@@ -183,7 +141,7 @@ const TradingTerminal = () => {
                   </div>
                </div>
                <div className="flex-1 p-4 relative w-full h-full">
-                  <Line data={chartData} options={chartOptions} />
+                  <CandlestickChart data={ohlcData} />
                </div>
             </div>
 
@@ -270,8 +228,15 @@ const TradingTerminal = () => {
                         {/* Quick action overlay on hover */}
                         <div className="mt-4 pt-4 border-t border-border opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity duration-200">
                            <button 
+                             onClick={(e) => { e.stopPropagation(); setActiveStock(stock); }}
+                             className="flex-1 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded text-xs font-semibold transition-colors flex items-center justify-center gap-1"
+                           >
+                              <BarChart3 size={12} />
+                              View Chart
+                           </button>
+                           <button 
                              onClick={(e) => { e.stopPropagation(); openOrderModal(stock, 'BUY'); }}
-                             className="flex-1 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded text-xs font-semibold transition-colors"
+                             className="flex-1 py-1.5 bg-success/10 text-success hover:bg-success hover:text-white rounded text-xs font-semibold transition-colors"
                            >
                               BUY
                            </button>
