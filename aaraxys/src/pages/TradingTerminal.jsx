@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useMarketData } from '../context/MarketContext';
 import { useOrder } from '../context/OrderContext';
 import CandlestickChart from '../components/CandlestickChart';
-import { Maximize2, Activity, ArrowLeft, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
+import { Line } from 'react-chartjs-2';
+import { Maximize2, CandlestickChart as CandlestickIcon, ArrowLeft, TrendingUp, TrendingDown, BarChart3, LineChart } from 'lucide-react';
 
 const TradingTerminal = () => {
   const { marketData, activeStock, setActiveStock } = useMarketData();
@@ -11,6 +12,7 @@ const TradingTerminal = () => {
   const [timeframe, setTimeframe] = useState('1D');
   const [orderType, setOrderType] = useState('Regular');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [chartType, setChartType] = useState('candlestick');
   
   // Generate OHLC candlestick data
   const [ohlcData, setOhlcData] = useState([]);
@@ -128,9 +130,13 @@ const TradingTerminal = () => {
                      ))}
                   </div>
                   <div className="flex gap-2">
-                    <button className="p-1.5 text-text-main/60 hover:text-text-main hover:bg-border/50 rounded transition-colors" title="Indicators">
-                       <Activity size={16} />
-                    </button>
+                     <button 
+                        onClick={() => setChartType(chartType === 'candlestick' ? 'line' : 'candlestick')}
+                        className={`p-1.5 rounded transition-colors flex items-center gap-1 ${chartType === 'line' ? 'bg-primary/10 text-primary' : 'text-text-main/60 hover:text-text-main hover:bg-border/50'}`}
+                        title={chartType === 'candlestick' ? 'Switch to Line Chart' : 'Switch to Candlestick Chart'}
+                     >
+                        {chartType === 'candlestick' ? <LineChart size={16} /> : <CandlestickIcon size={16} />}
+                     </button>
                     <button 
                        onClick={() => setIsFullscreen(!isFullscreen)}
                        className={`p-1.5 rounded transition-colors ${isFullscreen ? 'bg-primary/10 text-primary' : 'text-text-main/60 hover:text-text-main hover:bg-border/50'}`} 
@@ -141,7 +147,42 @@ const TradingTerminal = () => {
                   </div>
                </div>
                <div className="flex-1 p-4 relative w-full h-full">
-                  <CandlestickChart data={ohlcData} />
+                  {chartType === 'candlestick' ? (
+                    <CandlestickChart data={ohlcData} />
+                  ) : (
+                    <Line 
+                      data={{
+                        labels: ohlcData.map(d => d.label),
+                        datasets: [{
+                          label: 'Price',
+                          data: ohlcData.map(d => d.close),
+                          borderColor: '#2563eb',
+                          backgroundColor: (context) => {
+                            const ctx = context.chart.ctx;
+                            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                            gradient.addColorStop(0, 'rgba(37, 99, 235, 0.4)');
+                            gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+                            return gradient;
+                          },
+                          fill: true,
+                          pointRadius: 0,
+                          pointHoverRadius: 4,
+                          tension: 0.3,
+                          borderWidth: 2,
+                        }]
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(17,24,39,0.8)', titleColor: '#fff', bodyColor: '#fff' } },
+                        scales: {
+                          x: { grid: { color: 'rgba(156,163,175,0.1)' }, ticks: { maxTicksLimit: 8, color: 'rgba(156,163,175,0.7)' } },
+                          y: { position: 'right', grid: { color: 'rgba(156,163,175,0.1)' }, ticks: { color: 'rgba(156,163,175,0.7)' } }
+                        },
+                        interaction: { mode: 'index', intersect: false },
+                      }}
+                    />
+                  )}
                </div>
             </div>
 
