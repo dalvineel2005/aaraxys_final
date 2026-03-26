@@ -1,22 +1,31 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMarketData } from '../context/MarketContext';
 import { useAuth } from '../context/AuthContext';
-import { ArrowUpRight, ArrowDownRight, Briefcase, RefreshCw } from 'lucide-react';
+import { useOrder } from '../context/OrderContext';
+import { ArrowUpRight, ArrowDownRight, Briefcase, RefreshCw, BarChart3 } from 'lucide-react';
 import api from '../services/api';
 
 const Portfolio = () => {
-  const { marketData } = useMarketData();
+  const { marketData, setActiveStock } = useMarketData();
   const { user } = useAuth();
+  const { openOrderModal } = useOrder();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('HOLDINGS');
   const [apiHoldings, setApiHoldings] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchPortfolio = async () => {
     setIsLoading(true);
     try {
       if (user) {
-        const { data } = await api.get('/orders/portfolio');
-        setApiHoldings(data);
+        const [portfolioRes, ordersRes] = await Promise.all([
+          api.get('/orders/portfolio'),
+          api.get('/orders')
+        ]);
+        setApiHoldings(portfolioRes.data);
+        setOrders(ordersRes.data);
       }
     } catch (error) {
       console.error('Failed to fetch portfolio', error);
@@ -31,20 +40,53 @@ const Portfolio = () => {
 
   // Combine API holdings with real-time market data
   const holdings = apiHoldings.map(h => {
-    const marketStock = marketData.find(m => m.symbol === h.symbol) || { price: h.avgPrice, name: h.symbol };
+    const marketStock = marketData.find(m => m.symbol === h.symbol) || { price: h.avgPrice, name: h.symbol, change: 0, changePercent: 0 };
     return {
       symbol: h.symbol,
       name: marketStock.name,
       qty: h.quantity,
       avgCost: h.avgPrice,
-      price: marketStock.price
+      price: marketStock.price,
+      // Keep full market data for navigation
+      _marketData: marketStock
     };
+  });
+
+  // Positions = today's executed orders
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const positions = orders.filter(o => {
+    const orderDate = new Date(o.createdAt);
+    return orderDate >= today && o.status === 'EXECUTED';
   });
 
   const totalInvested = holdings.reduce((acc, h) => acc + (h.qty * h.avgCost), 0);
   const totalCurrent = holdings.reduce((acc, h) => acc + (h.qty * h.price), 0);
   const totalPnL = totalCurrent - totalInvested;
   const isPositive = totalPnL >= 0;
+
+  const handleViewChart = (holding) => {
+    const stock = marketData.find(m => m.symbol === holding.symbol) || {
+      symbol: holding.symbol,
+      name: holding.name,
+      price: holding.price,
+      change: 0,
+      changePercent: 0
+    };
+    setActiveStock(stock);
+    navigate('/trade');
+  };
+
+  const handleAction = (holding, type) => {
+    const stock = marketData.find(m => m.symbol === holding.symbol) || {
+      symbol: holding.symbol,
+      name: holding.name,
+      price: holding.price,
+      change: 0,
+      changePercent: 0
+    };
+    openOrderModal(stock, type);
+  };
 
   return (
     <div className="p-6 h-full flex flex-col animate-in fade-in duration-500 max-w-7xl mx-auto w-full">
@@ -94,7 +136,7 @@ const Portfolio = () => {
            onClick={() => setActiveTab('POSITIONS')}
            className={`pb-3 border-b-2 transition-all ${activeTab === 'POSITIONS' ? 'border-primary text-primary' : 'border-transparent text-text-main/60 hover:text-text-main'}`}
          >
-           Positions (0)
+           Positions ({positions.length})
          </button>
       </div>
 
@@ -117,12 +159,13 @@ const Portfolio = () => {
                   <th className="p-4 font-medium text-right">LTP</th>
                   <th className="p-4 font-medium text-right">Cur. Value</th>
                   <th className="p-4 font-medium text-right">P&L</th>
+                  <th className="p-4 font-medium text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {holdings.length === 0 && !isLoading ? (
                   <tr>
-                    <td colSpan="6" className="p-12 text-center text-text-main/50">
+                    <td colSpan="7" className="p-12 text-center text-text-main/50">
                        No active holdings found in your account.
                     </td>
                   </tr>
@@ -133,7 +176,7 @@ const Portfolio = () => {
                     const isUp = pnl >= 0;
                     
                     return (
-                      <tr key={h.symbol} className="hover:bg-border/30 transition-colors">
+                      <tr key={h.symbol} className="hover:bg-border/30 transition-colors group">
                         <td className="p-4">
                           <div className="font-bold text-text-main">{h.symbol}</div>
                           <div className="text-xs text-text-main/60 mt-0.5">{h.name}</div>
@@ -150,6 +193,32 @@ const Portfolio = () => {
                              {isUp ? '+' : ''}{pnlPercent.toFixed(2)}%
                            </div>
                         </td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleViewChart(h)}
+                              className="px-2.5 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
+                              title="View Chart"
+                            >
+                              <BarChart3 size={12} />
+                              <span className="hidden lg:inline">Chart</span>
+                            </button>
+                            <button
+                              onClick={() => handleAction(h, 'BUY')}
+                              className="px-2.5 py-1.5 bg-success/10 text-success hover:bg-success hover:text-white rounded-lg text-xs font-semibold transition-colors"
+                              title="Buy"
+                            >
+                              Buy
+                            </button>
+                            <button
+                              onClick={() => handleAction(h, 'SELL')}
+                              className="px-2.5 py-1.5 bg-danger/10 text-danger hover:bg-danger hover:text-white rounded-lg text-xs font-semibold transition-colors"
+                              title="Sell"
+                            >
+                              Sell
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     );
                   })
@@ -160,12 +229,61 @@ const Portfolio = () => {
         </div>
       )}
 
-      {/* Positions Empty State */}
+      {/* Positions Table */}
       {activeTab === 'POSITIONS' && (
-         <div className="flex-1 flex flex-col items-center justify-center text-text-main/50 border border-border border-dashed rounded-xl p-12">
+        positions.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-text-main/50 border border-border border-dashed rounded-xl p-12">
             <Briefcase size={40} className="mb-4 opacity-20" />
-            <p className="text-center">You don't have any open POSITIONS for intra-day trades.<br/>Check your holdings tab for long term investments.</p>
-         </div>
+            <p className="text-center">You don't have any open POSITIONS for intra-day trades.<br/>Place a trade from the terminal to see it here.</p>
+          </div>
+        ) : (
+          <div className="flex-1 bg-surface border border-border rounded-xl flex flex-col relative overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse whitespace-nowrap">
+                <thead>
+                  <tr className="border-b border-border bg-background/50 text-text-main/70 text-xs uppercase tracking-wider">
+                    <th className="p-4 font-medium">Instrument</th>
+                    <th className="p-4 font-medium text-center">Type</th>
+                    <th className="p-4 font-medium text-right">Qty.</th>
+                    <th className="p-4 font-medium text-right">Price</th>
+                    <th className="p-4 font-medium text-right">Value</th>
+                    <th className="p-4 font-medium text-center">Status</th>
+                    <th className="p-4 font-medium text-right">Time</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {positions.map((pos) => {
+                    const marketStock = marketData.find(m => m.symbol === pos.symbol);
+                    return (
+                      <tr key={pos._id} className="hover:bg-border/30 transition-colors">
+                        <td className="p-4">
+                          <div className="font-bold text-text-main">{pos.symbol}</div>
+                          <div className="text-xs text-text-main/60 mt-0.5">{marketStock?.name || pos.symbol}</div>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${pos.type === 'BUY' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
+                            {pos.type}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right text-text-main tabular-nums">{pos.quantity}</td>
+                        <td className="p-4 text-right text-text-main tabular-nums">₹{pos.price.toFixed(2)}</td>
+                        <td className="p-4 text-right text-text-main tabular-nums">₹{(pos.quantity * pos.price).toFixed(2)}</td>
+                        <td className="p-4 text-center">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary">
+                            {pos.status}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right text-text-main/60 text-sm tabular-nums">
+                          {new Date(pos.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
       )}
 
     </div>
