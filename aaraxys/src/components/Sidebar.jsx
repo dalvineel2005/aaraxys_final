@@ -1,13 +1,15 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { LayoutDashboard, LineChart, Briefcase, ListOrdered, WalletCards, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useMarketData } from '../context/MarketContext';
 
 const Sidebar = ({ onNavigate }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { setActiveStock } = useMarketData();
   const navLinks = [
     { name: t('dashboard'), path: '/dashboard', icon: <LayoutDashboard size={20} /> },
     { name: t('markets'), path: '/markets', icon: <LineChart size={20} /> },
@@ -19,9 +21,9 @@ const Sidebar = ({ onNavigate }) => {
   return (
     <aside className="w-20 md:w-[72px] flex flex-col h-full bg-sidebar-bg border-r border-border transition-all duration-300">
       {/* Brand Logo area (Navbar handles top on mobile, this is for desktop) */}
-      <div className="h-16 flex flex-col items-center justify-center border-b border-border p-3">
+      <Link to="/dashboard" className="h-16 flex flex-col items-center justify-center border-b border-border p-3 cursor-pointer" onClick={() => { setActiveStock(null); if (onNavigate) onNavigate(); }}>
         <img src="/logo.png" alt="ARAYXS" className="w-full h-full object-contain rounded-lg shadow-sm" />
-      </div>
+      </Link>
 
       <div className="flex-1 py-4 flex flex-col items-center gap-2 px-2">
         {navLinks.map((link) => (
@@ -29,7 +31,7 @@ const Sidebar = ({ onNavigate }) => {
             key={link.name}
             to={link.path}
             title={link.name}
-            onClick={onNavigate}
+            onClick={() => { setActiveStock(null); if (onNavigate) onNavigate(); }}
             className={({ isActive }) =>
               `flex flex-col items-center justify-center w-full aspect-square rounded-xl transition-all duration-200 group relative
               ${isActive
@@ -57,7 +59,7 @@ const Sidebar = ({ onNavigate }) => {
       
       {/* Bottom Actions */}
       <div className="p-2 border-t border-border mt-auto flex flex-col gap-2">
-        <NavLink to="/profile" title="Settings" onClick={onNavigate} className="flex items-center justify-center w-full aspect-square rounded-xl text-text-main/60 hover:bg-border/50 hover:text-text-main transition-colors">
+        <NavLink to="/profile" title="Settings" onClick={() => { setActiveStock(null); if (onNavigate) onNavigate(); }} className="flex items-center justify-center w-full aspect-square rounded-xl text-text-main/60 hover:bg-border/50 hover:text-text-main transition-colors">
           <Settings size={22} />
         </NavLink>
         <button 

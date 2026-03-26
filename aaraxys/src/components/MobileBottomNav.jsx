@@ -3,10 +3,12 @@ import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, LineChart, Briefcase, WalletCards, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { useMarketData } from '../context/MarketContext';
 
 const MobileBottomNav = () => {
   const [showMore, setShowMore] = useState(false);
   const { t } = useLanguage();
+  const { setActiveStock } = useMarketData();
 
   const mainLinks = [
     { name: t('dashboard'), path: '/dashboard', icon: LayoutDashboard },
@@ -34,7 +36,7 @@ const MobileBottomNav = () => {
                 <NavLink
                   key={link.name}
                   to={link.path}
-                  onClick={() => setShowMore(false)}
+                  onClick={() => { setActiveStock(null); setShowMore(false); }}
                   className={({ isActive }) =>
                     `block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                       isActive
@@ -59,6 +61,7 @@ const MobileBottomNav = () => {
             <NavLink
               key={link.name}
               to={link.path}
+              onClick={() => setActiveStock(null)}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center gap-0.5 flex-1 py-1 rounded-lg transition-colors ${
                   isActive

@@ -116,7 +116,7 @@ const Navbar = ({ onToggleSidebar }) => {
            <button onClick={onToggleSidebar} className="text-text-main/70 hover:text-text-main p-1">
              <Menu size={24} />
            </button>
-           <img src="/logo.png" alt="ARAYXS" className="w-8 h-8 object-contain rounded-lg shadow-sm" />
+           <img src="/logo.png" alt="ARAYXS" className="w-8 h-8 object-contain rounded-lg shadow-sm cursor-pointer" onClick={() => navigate('/dashboard')} />
         </div>
         
         {/* Global Search Bar */}
