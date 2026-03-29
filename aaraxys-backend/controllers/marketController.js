@@ -24,7 +24,7 @@ export const getHistoricalData = async (req, res) => {
     // Map timeframe string to Yahoo Finance periods
     switch (timeframe) {
       case '1D':
-        period1.setDate(period1.getDate() - 2); // 2 days to ensure we get data (trading days)
+        period1.setDate(period1.getDate() - 5); // 5 days to ensure we get data over weekends
         interval = '5m';
         break;
       case '1W':
@@ -48,7 +48,7 @@ export const getHistoricalData = async (req, res) => {
         interval = '1mo';
         break;
       default:
-        period1.setDate(period1.getDate() - 2);
+        period1.setDate(period1.getDate() - 5);
     }
 
     const queryOptions = {
@@ -60,7 +60,9 @@ export const getHistoricalData = async (req, res) => {
     
     // Process formatting for React Candlestick Chart
     const quotes = result?.quotes || [];
-    const formattedData = quotes.map(entry => {
+    const formattedData = quotes
+      .filter(entry => entry.open !== null && entry.close !== null && entry.high !== null && entry.low !== null)
+      .map(entry => {
         // Date formatting based on interval
         const date = new Date(entry.date);
         let label = '';
