@@ -7,6 +7,7 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import marketRoutes from './routes/marketRoutes.js';
 
 // Load env vars
 dotenv.config();
@@ -40,6 +41,7 @@ app.use(cors({
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/market', marketRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
@@ -105,25 +107,64 @@ const initialSymbols = [
 
 let marketData = [...initialSymbols];
 
-setInterval(() => {
-  marketData = marketData.map((stock) => {
-    const fluctuation = (Math.random() - 0.5) * 1.5;
-    const newPrice = Math.max(0.01, stock.price + fluctuation);
-    const priceDiff = newPrice - stock.price;
-    const newChange = stock.change + priceDiff;
-    const basePrice = stock.price - stock.change;
-    const newChangePercent = (newChange / basePrice) * 100;
+const usStocks = ['AAPL', 'MSFT', 'TSLA', 'AMZN', 'GOOGL', 'META', 'NVDA', 'LTIM'];
+const finnhubKey = process.env.FINNHUB_API_KEY;
+const avKey = process.env.ALPHAVANTAGE_API_KEY;
+let currentUpdateIndex = 0;
 
-    return {
-      ...stock,
-      price: Number(newPrice.toFixed(2)),
-      change: Number(newChange.toFixed(2)),
-      changePercent: Number(newChangePercent.toFixed(2)),
-      direction: priceDiff > 0 ? 'up' : priceDiff < 0 ? 'down' : 'flat'
-    };
-  });
+// Hybrid Strategy: Fetch 1 stock roughly every 1.1s to respect Finnhub's 60/min limit
+setInterval(async () => {
+  if (!finnhubKey || finnhubKey === 'your_finnhub_api_key_here') return;
+
+  const stockIndex = currentUpdateIndex % marketData.length;
+  const stock = marketData[stockIndex];
+  // Map Indian NSE stocks using .NS suffix for Yahoo/Finnhub format
+  let querySymbol = usStocks.includes(stock.symbol) ? stock.symbol : `${stock.symbol}.NS`;
+  
+  let priceUpdated = false;
+
+  try {
+      // Primary API: Finnhub
+      const fhRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${querySymbol}&token=${finnhubKey}`);
+      if (fhRes.ok) {
+          const data = await fhRes.json();
+          // Check if data is valid (c is current price)
+          if (data.c && data.c !== 0) {
+             stock.price = data.c;
+             stock.change = data.d;
+             stock.changePercent = data.dp;
+             stock.direction = data.d > 0 ? 'up' : data.d < 0 ? 'down' : 'flat';
+             priceUpdated = true;
+          }
+      }
+      
+      // Backup API: Alpha Vantage 
+      if (!priceUpdated && avKey && avKey !== 'your_alphavantage_api_key_here') {
+           const avSymbol = usStocks.includes(stock.symbol) ? stock.symbol : `${stock.symbol}.BSE`; // AV often uses BSE for Indian
+           const avRes = await fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${avSymbol}&apikey=${avKey}`);
+           const avData = await avRes.json();
+           const quote = avData['Global Quote'];
+           
+           if (quote && quote['05. price']) {
+               const newPrice = parseFloat(quote['05. price']);
+               const newChange = parseFloat(quote['09. change']);
+               const newChangePercent = parseFloat(quote['10. change percent'].replace('%', ''));
+               stock.price = newPrice;
+               stock.change = newChange;
+               stock.changePercent = newChangePercent;
+               stock.direction = newChange > 0 ? 'up' : newChange < 0 ? 'down' : 'flat';
+           }
+      }
+
+  } catch (e) {
+      console.error(`Error fetching hybrid quote for ${stock.symbol}:`, e.message);
+  }
+  
+  // Emit state to connected clients
   io.emit('market_update', marketData);
-}, 2000);
+  
+  currentUpdateIndex++;
+}, 1100);
 
 io.on('connection', (socket) => {
   console.log('Client connected to socket:', socket.id);

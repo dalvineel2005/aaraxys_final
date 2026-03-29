@@ -3,6 +3,7 @@ import { useMarketData } from '../context/MarketContext';
 import { useOrder } from '../context/OrderContext';
 import CandlestickChart from '../components/CandlestickChart';
 import { Line } from 'react-chartjs-2';
+import api from '../services/api';
 import { Maximize2, CandlestickChart as CandlestickIcon, ArrowLeft, TrendingUp, TrendingDown, BarChart3, LineChart } from 'lucide-react';
 
 const TradingTerminal = () => {
@@ -14,48 +15,28 @@ const TradingTerminal = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [chartType, setChartType] = useState('candlestick');
   
-  // Generate OHLC candlestick data
+  // Fetch OHLC candlestick data from Hybrid Backend API
   const [ohlcData, setOhlcData] = useState([]);
+  const [isLoadingChart, setIsLoadingChart] = useState(false);
 
   React.useEffect(() => {
-     let price = activeStock?.price || 100;
-     let dataLength = 60;
-     let volatility = 2;
-
-     switch(timeframe) {
-       case '1W': dataLength = 35; volatility = 5; break;
-       case '1M': dataLength = 30; volatility = 10; break;
-       case '3M': dataLength = 60; volatility = 15; break;
-       case '1Y': dataLength = 52; volatility = 25; break;
-       case 'ALL': dataLength = 80; volatility = 40; break;
-       case '1D': default: dataLength = 40; volatility = 2; break;
-     }
-
-     const candles = Array.from({length: dataLength}, (_, i) => {
-       const open = price;
-       const move1 = (Math.random() - 0.5) * volatility;
-       const move2 = (Math.random() - 0.5) * volatility;
-       const close = open + move1 + move2 * 0.5;
-       const high = Math.max(open, close) + Math.random() * volatility * 0.5;
-       const low = Math.min(open, close) - Math.random() * volatility * 0.5;
-       price = close;
-
-       let label;
-       if (timeframe === '1D') {
-         const hour = Math.floor(i * 6 / dataLength) + 9;
-         const min = Math.floor((i * 360 / dataLength) % 60);
-         label = `${hour}:${min.toString().padStart(2, '0')}`;
-       } else if (timeframe === '1W') {
-         label = `D${i + 1}`;
-       } else {
-         label = `T-${dataLength - i}`;
-       }
-
-       return { open, high, low, close, label };
-     });
-
-     setOhlcData(candles);
-  }, [activeStock?.symbol, activeStock?.price, timeframe]);
+     if (!activeStock?.symbol) return;
+     
+     const fetchHistoricalData = async () => {
+         setIsLoadingChart(true);
+         try {
+             const { data } = await api.get(`/market/history/${activeStock.symbol}?timeframe=${timeframe}`);
+             setOhlcData(data);
+         } catch (error) {
+             console.error('Failed to fetch historical chart data', error);
+             setOhlcData([]); // clear or handle gracefully
+         } finally {
+             setIsLoadingChart(false);
+         }
+     };
+     
+     fetchHistoricalData();
+  }, [activeStock?.symbol, timeframe]);
 
 
 
@@ -147,7 +128,12 @@ const TradingTerminal = () => {
                   </div>
                </div>
                <div className="flex-1 p-4 relative w-full h-full">
-                  {chartType === 'candlestick' ? (
+                  {isLoadingChart ? (
+                     <div className="absolute inset-0 flex flex-col items-center justify-center text-text-main/50">
+                        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mb-3"></div>
+                        <p className="text-sm font-medium">Loading historical data...</p>
+                     </div>
+                  ) : chartType === 'candlestick' ? (
                     <CandlestickChart data={ohlcData} />
                   ) : (
                     <Line 
