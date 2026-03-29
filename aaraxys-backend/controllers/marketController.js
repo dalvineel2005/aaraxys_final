@@ -1,4 +1,6 @@
-import yahooFinance from 'yahoo-finance2';
+import YahooFinance from 'yahoo-finance2';
+
+const yahooFinance = new YahooFinance();
 
 // Helper to append .NS suffix for Indian stocks if missing
 const getYahooSymbol = (symbol) => {
@@ -50,14 +52,15 @@ export const getHistoricalData = async (req, res) => {
     }
 
     const queryOptions = {
-      period1: period1.toISOString(),
+      period1: period1,
       interval: interval,
     };
 
-    const result = await yahooFinance.historical(querySymbol, queryOptions);
+    const result = await yahooFinance.chart(querySymbol, queryOptions);
     
     // Process formatting for React Candlestick Chart
-    const formattedData = result.map(entry => {
+    const quotes = result?.quotes || [];
+    const formattedData = quotes.map(entry => {
         // Date formatting based on interval
         const date = new Date(entry.date);
         let label = '';
