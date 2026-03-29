@@ -84,7 +84,72 @@ export const getHistoricalData = async (req, res) => {
 
     res.json(formattedData);
   } catch (error) {
-    console.error('Error fetching historical data:', error);
-    res.status(500).json({ message: 'Error fetching historical data API' });
+    console.error('Yahoo Finance failed, trying Finnhub fallback:', error.message);
+    
+    try {
+        const usStocks = ['AAPL', 'MSFT', 'TSLA', 'AMZN', 'GOOGL', 'META', 'NVDA', 'LTIM'];
+        if (!usStocks.includes(req.params.symbol)) {
+             return res.status(500).json({ message: 'Error fetching historical data (Yahoo Blocked, No Finnhub for Indian stocks)' });
+        }
+
+        const finnhubKey = process.env.FINNHUB_API_KEY;
+        if (!finnhubKey) {
+             return res.status(500).json({ message: 'Error fetching historical data (No API key)' });
+        }
+
+        // Map resolution
+        let resolution = '5';
+        const { timeframe = '1D' } = req.query;
+        if (timeframe === '1W') resolution = '15';
+        else if (timeframe === '1M' || timeframe === '3M') resolution = 'D';
+        else if (timeframe === '1Y') resolution = 'W';
+        else if (timeframe === 'ALL') resolution = 'M';
+
+        // Calculate 'from' timestamp
+        let period1 = new Date();
+        if (timeframe === '1D') period1.setDate(period1.getDate() - 5);
+        else if (timeframe === '1W') period1.setDate(period1.getDate() - 7);
+        else if (timeframe === '1M') period1.setMonth(period1.getMonth() - 1);
+        else if (timeframe === '3M') period1.setMonth(period1.getMonth() - 3);
+        else if (timeframe === '1Y') period1.setFullYear(period1.getFullYear() - 1);
+        else if (timeframe === 'ALL') period1.setFullYear(period1.getFullYear() - 5);
+        else period1.setDate(period1.getDate() - 5);
+
+        const fromTimestamp = Math.floor(period1.getTime() / 1000);
+        const toTimestamp = Math.floor(Date.now() / 1000);
+
+        const fhRes = await fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${req.params.symbol}&resolution=${resolution}&from=${fromTimestamp}&to=${toTimestamp}&token=${finnhubKey}`);
+        
+        if (!fhRes.ok) throw new Error('Finnhub network error');
+        
+        const fhData = await fhRes.json();
+        if (fhData.s !== 'ok') {
+            return res.status(500).json({ message: 'No data from Finnhub' });
+        }
+
+        const formattedData = [];
+        for (let i = 0; i < fhData.t.length; i++) {
+             const dateObj = new Date(fhData.t[i] * 1000);
+             let label = '';
+             if (resolution === '5' || resolution === '15') {
+                 label = `${dateObj.getHours()}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
+             } else {
+                 label = `${dateObj.getDate()}/${dateObj.getMonth() + 1}`;
+             }
+
+             formattedData.push({
+                 open: fhData.o[i],
+                 high: fhData.h[i],
+                 low: fhData.l[i],
+                 close: fhData.c[i],
+                 label: label,
+                 date: dateObj.toISOString()
+             });
+        }
+        return res.json(formattedData);
+    } catch (fallbackError) {
+        console.error('Finnhub fallback failed:', fallbackError.message);
+        return res.status(500).json({ message: 'All data sources failed' });
+    }
   }
 };
