@@ -95,13 +95,13 @@ const Profile = () => {
    };
 
    const navButtonClasses = (tab) =>
-      `w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${activeTab === tab
+      `flex items-center gap-2 md:gap-3 px-4 py-2.5 md:py-3 rounded-lg transition-colors font-medium whitespace-nowrap shrink-0 md:w-full ${activeTab === tab
          ? 'bg-primary/10 text-primary'
          : 'text-text-main/70 hover:bg-border/30 hover:text-text-main'
       }`;
    return (
-      <div className="p-6 h-full flex flex-col animate-in fade-in duration-500 max-w-5xl mx-auto w-full">
-         <div className="mb-8">
+      <div className="p-4 md:p-6 h-full flex flex-col animate-in fade-in duration-500 max-w-5xl mx-auto w-full pb-24 md:pb-6">
+         <div className="mb-6 md:mb-8">
             <h1 className="text-2xl font-bold text-text-main tracking-tight">{t('account')}</h1>
             <p className="text-text-main/60 mt-1">{t('accountSubtitle')}</p>
          </div>
@@ -109,39 +109,41 @@ const Profile = () => {
          <div className="flex flex-col md:flex-row gap-6">
 
             {/* Left Column - Navigation Sidebar */}
-            <div className="w-full md:w-64 space-y-1">
-               <button
-                  onClick={() => setActiveTab('personal')}
-                  className={navButtonClasses('personal')}
-               >
-                  <User size={18} /> {t('personalInfo')}
-               </button>
-               <button
-                  onClick={() => setActiveTab('security')}
-                  className={navButtonClasses('security')}
-               >
-                  <Lock size={18} /> {t('passwordSecurity')}
-               </button>
-               <button
-                  onClick={() => setActiveTab('bank')}
-                  className={navButtonClasses('bank')}
-               >
-                  <CreditCard size={18} /> {t('bankDetails')}
-               </button>
-               <button
-                  onClick={() => setActiveTab('preferences')}
-                  className={navButtonClasses('preferences')}
-               >
-                  <Settings size={18} /> {t('preferences')}
-               </button>
+            <div className="w-full md:w-64 shrink-0 flex flex-col gap-3 md:gap-0 md:space-y-1">
+               <div className="flex overflow-x-auto md:flex-col gap-2 md:gap-1 pb-2 md:pb-0 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  <button
+                     onClick={() => setActiveTab('personal')}
+                     className={navButtonClasses('personal')}
+                  >
+                     <User size={18} /> {t('personalInfo')}
+                  </button>
+                  <button
+                     onClick={() => setActiveTab('security')}
+                     className={navButtonClasses('security')}
+                  >
+                     <Lock size={18} /> {t('passwordSecurity')}
+                  </button>
+                  <button
+                     onClick={() => setActiveTab('bank')}
+                     className={navButtonClasses('bank')}
+                  >
+                     <CreditCard size={18} /> {t('bankDetails')}
+                  </button>
+                  <button
+                     onClick={() => setActiveTab('preferences')}
+                     className={navButtonClasses('preferences')}
+                  >
+                     <Settings size={18} /> {t('preferences')}
+                  </button>
+               </div>
 
-               <div className="pt-6 mt-6 border-t border-border">
+               <div className="md:pt-6 md:mt-6 md:border-t md:border-border">
                   <button
                      onClick={() => {
                         logout();
                         navigate('/login');
                      }}
-                     className="w-full flex items-center gap-3 px-4 py-3 text-danger/80 hover:bg-danger/10 hover:text-danger rounded-lg transition-colors font-medium"
+                     className="w-full flex items-center justify-center md:justify-start gap-3 px-4 py-2.5 md:py-3 text-danger/80 hover:bg-danger/10 hover:text-danger rounded-lg transition-colors font-medium shrink-0 border border-danger/20 md:border-none"
                   >
                      <LogOut size={18} /> {t('signOut')}
                   </button>
@@ -149,57 +151,59 @@ const Profile = () => {
             </div>
 
             {/* Right Column - Content */}
-            <div className="flex-1 bg-surface border border-border rounded-xl p-6">
+            <div className="flex-1 bg-surface border border-border rounded-xl p-4 sm:p-6 overflow-hidden md:overflow-visible min-w-0">
 
-               <div className="flex items-center gap-6 mb-8 pb-8 border-b border-border">
-                  <div className="w-24 h-24 rounded-full bg-border flex items-center justify-center overflow-hidden border-4 border-background">
-                     <User size={48} className="text-text-main/40" />
+               <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-border">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-full bg-border flex items-center justify-center overflow-hidden border-4 border-background">
+                     <User className="text-text-main/40 w-10 h-10 sm:w-12 sm:h-12" />
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0 w-full flex flex-col items-center sm:items-start text-center sm:text-left">
                      {isEditing ? (
                         <input
                            type="text"
                            name="name"
                            value={formData.name}
                            onChange={handleInputChange}
-                           className="text-2xl font-bold bg-background border border-border rounded px-2 py-1 mb-1 focus:outline-none focus:border-primary text-text-main w-full max-w-[250px]"
+                           className="text-xl sm:text-2xl font-bold bg-background border border-border rounded px-2 py-1 mb-1 focus:outline-none focus:border-primary text-text-main w-full max-w-[250px] text-center sm:text-left"
                         />
                      ) : (
-                        <h2 className="text-2xl font-bold text-text-main">{user?.name || 'Guest User'}</h2>
+                        <h2 className="text-xl sm:text-2xl font-bold text-text-main truncate w-full">{user?.name || 'Guest User'}</h2>
                      )}
-                     <p className="text-text-main/60 mt-1 flex items-center gap-2">
-                        <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded font-medium">
+                     <p className="text-text-main/60 mt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2 w-full">
+                        <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded font-medium shrink-0">
                            U{(user?._id || '12498').substring(0, 5).toUpperCase()}
                         </span>
-                        {t('joined')} {new Date(user?.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        <span className="truncate">{t('joined')} {new Date(user?.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
                      </p>
                   </div>
 
-                  {isEditing ? (
-                     <div className="ml-auto flex gap-2">
+                  <div className="w-full sm:w-auto flex justify-center sm:justify-end shrink-0 mt-2 sm:mt-0">
+                     {isEditing ? (
+                        <div className="flex gap-2 w-full sm:w-auto">
+                           <button
+                              onClick={() => setIsEditing(false)}
+                              disabled={isLoading}
+                              className="flex-1 sm:flex-none justify-center px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-border/50 text-text-main transition-colors flex items-center gap-2"
+                           >
+                              <X size={16} /> <span className="hidden xs:inline">{t('cancel')}</span>
+                           </button>
+                           <button
+                              onClick={handleSaveProfile}
+                              disabled={isLoading}
+                              className="flex-1 sm:flex-none justify-center px-4 py-2 bg-primary text-[#0d0d12] rounded-lg text-sm font-medium hover:bg-primary-hover transition-colors flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
+                           >
+                              <Save size={16} /> {isLoading ? t('saving') : t('saveChanges')}
+                           </button>
+                        </div>
+                     ) : (
                         <button
-                           onClick={() => setIsEditing(false)}
-                           disabled={isLoading}
-                           className="px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-border/50 text-text-main transition-colors flex items-center gap-2"
+                           onClick={() => setIsEditing(true)}
+                           className="w-full sm:w-auto justify-center px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-border/50 text-text-main transition-colors flex items-center gap-2"
                         >
-                           <X size={16} /> {t('cancel')}
+                           <Edit2 size={16} /> {t('editProfile')}
                         </button>
-                        <button
-                           onClick={handleSaveProfile}
-                           disabled={isLoading}
-                           className="px-4 py-2 bg-primary text-[#0d0d12] rounded-lg text-sm font-medium hover:bg-primary-hover transition-colors flex items-center gap-2 disabled:opacity-50"
-                        >
-                           <Save size={16} /> {isLoading ? t('saving') : t('saveChanges')}
-                        </button>
-                     </div>
-                  ) : (
-                     <button
-                        onClick={() => setIsEditing(true)}
-                        className="ml-auto px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-border/50 text-text-main transition-colors flex items-center gap-2"
-                     >
-                        <Edit2 size={16} /> {t('editProfile')}
-                     </button>
-                  )}
+                     )}
+                  </div>
                </div>
 
                {activeTab === 'personal' && (
